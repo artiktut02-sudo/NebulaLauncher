@@ -8,8 +8,8 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     
-    <!-- ВОТ НАША ИКОНКА -->
-    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <!-- Твоя иконка -->
+    <ApplicationIcon>nebula.ico</ApplicationIcon>
     
   </PropertyGroup>
   <ItemGroup>
