@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Diagnostics;
+using System.IO;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
 
@@ -13,29 +14,47 @@ namespace NebulaLauncher
 
         public MainWindow()
         {
+            // Сначала инициализируем интерфейс, чтобы окно сразу появилось
             InitializeComponent();
-            _path = new MinecraftPath();
-            _launcher = new CMLauncher(_path);
             
-            // Подписка на события скачивания
-            _launcher.FileChanged += (e) =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    DownloadBar.Visibility = Visibility.Visible;
-                    StatusText.Text = $"Качаем: {e.FileName}";
-                });
-            };
+            // Теперь запускаем инициализацию в фоне
+            Loaded += MainWindow_Loaded;
+        }
 
-            _launcher.ProgressChanged += (s, e) =>
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
             {
-                Dispatcher.Invoke(() =>
-                {
-                    DownloadBar.Value = e.ProgressPercentage;
-                });
-            };
+                // Записываем лог при старте
+                File.WriteAllText("launcher_log.txt", "Запуск лаунчера...\n");
 
-            LoadVersions();
+                _path = new MinecraftPath();
+                _launcher = new CMLauncher(_path);
+                
+                _launcher.FileChanged += (args) =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        DownloadBar.Visibility = Visibility.Visible;
+                        StatusText.Text = $"Качаем: {args.FileName}";
+                    });
+                };
+
+                _launcher.ProgressChanged += (s, args) =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        DownloadBar.Value = args.ProgressPercentage;
+                    });
+                };
+
+                LoadVersions();
+            }
+            catch (Exception ex)
+            {
+                File.AppendAllText("launcher_log.txt", "Ошибка при инициализации: " + ex.ToString() + "\n");
+                MessageBox.Show("Ошибка при запуске:\n" + ex.Message);
+            }
         }
 
         private async void LoadVersions()
@@ -43,7 +62,10 @@ namespace NebulaLauncher
             try
             {
                 StatusText.Text = "Загрузка версий...";
+                
+                // Добавляем таймаут, чтобы не висело вечно
                 var versions = await _launcher.GetAllVersionsAsync();
+                
                 VersionBox.Items.Clear();
                 foreach (var v in versions)
                     VersionBox.Items.Add(v.Name);
@@ -54,7 +76,8 @@ namespace NebulaLauncher
             catch (Exception ex)
             {
                 StatusText.Text = "Ошибка версий";
-                MessageBox.Show("Не удалось загрузить список версий:\n" + ex.Message);
+                File.AppendAllText("launcher_log.txt", "Ошибка загрузки версий: " + ex.ToString() + "\n");
+                MessageBox.Show("Не удалось загрузить список версий. Проверьте интернет.\n\n" + ex.Message);
             }
         }
 
@@ -76,7 +99,7 @@ namespace NebulaLauncher
                 var option = new MLaunchOption
                 {
                     Session = session,
-                    MaximumRamMb = 2048, // 2ГБ памяти
+                    MaximumRamMb = 2048,
                 };
 
                 var process = await _launcher.CreateProcessAsync(version, option);
@@ -91,6 +114,7 @@ namespace NebulaLauncher
             {
                 StatusText.Text = "ОШИБКА";
                 DownloadBar.Visibility = Visibility.Collapsed;
+                File.AppendAllText("launcher_log.txt", "Ошибка при запуске игры: " + ex.ToString() + "\n");
                 MessageBox.Show("Ошибка при скачивании/запуске:\n\n" + ex.ToString(), "Ошибка");
             }
             finally
