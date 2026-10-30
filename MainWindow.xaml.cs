@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
 
@@ -42,9 +43,9 @@ namespace NebulaLauncher
                 if (_launcher == null)
                 {
                     _path = new MinecraftPath();
+                    // Используем встроенный в библиотеку загрузчик
                     _launcher = new CMLauncher(_path);
 
-                    // Показываем прогресс
                     _launcher.FileChanged += (args) =>
                     {
                         Dispatcher.Invoke(() =>
@@ -63,8 +64,6 @@ namespace NebulaLauncher
                 }
 
                 StatusText.Text = "Скачивание...";
-                
-                // Создаем офлайн-сессию
                 var session = MSession.CreateOfflineSession(nick);
                 
                 var option = new MLaunchOption
@@ -73,13 +72,25 @@ namespace NebulaLauncher
                     MaximumRamMb = 2048,
                 };
 
-                var process = await _launcher.CreateProcessAsync(version, option);
+                // Пытаемся скачать и запустить с таймаутом
+                var downloadTask = _launcher.CreateProcessAsync(version, option);
                 
-                StatusText.Text = "Запуск игры...";
-                process.Start();
-                
-                StatusText.Text = "Игра запущена!";
-                DownloadBar.Visibility = Visibility.Collapsed;
+                // Ждем максимум 1 минуту на подключение
+                if (await Task.WhenAny(downloadTask, Task.Delay(60000)) == downloadTask)
+                {
+                    var process = await downloadTask;
+                    StatusText.Text = "Запуск игры...";
+                    process.Start();
+                    StatusText.Text = "Игра запущена!";
+                    DownloadBar.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    // Если прошла минута, а скачивание не началось
+                    StatusText.Text = "ОШИБКА СЕТИ";
+                    DownloadBar.Visibility = Visibility.Collapsed;
+                    MessageBox.Show("Не удалось подключиться к серверам Mojang.\n\nПопробуй включить VPN или отключить блокировщики (zapret).", "Ошибка сети");
+                }
             }
             catch (Exception ex)
             {
