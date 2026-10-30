@@ -3,13 +3,13 @@ using System.Windows;
 using System.Diagnostics;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
-using CmlLib.Core.Version;
+using CmlLib.Core.ProcessBuilder;
 
 namespace NebulaLauncher
 {
     public partial class MainWindow : Window
     {
-        private CMLauncher _launcher;
+        private MinecraftLauncher _launcher;
         private MinecraftPath _path;
 
         public MainWindow()
@@ -17,7 +17,7 @@ namespace NebulaLauncher
             InitializeComponent();
             StatusText.Text = "Готов к запуску";
 
-            // Временно вписываем версии вручную, чтобы лаунчер не зависал при старте
+            // Вписываем версии вручную
             VersionBox.Items.Add("1.20.1");
             VersionBox.Items.Add("1.20.4");
             VersionBox.Items.Add("1.19.4");
@@ -42,11 +42,17 @@ namespace NebulaLauncher
                 DownloadBar.Visibility = Visibility.Visible;
                 DownloadBar.Value = 0;
 
-                // Инициализируем библиотеку ТОЛЬКО сейчас, при нажатии на кнопку
                 if (_launcher == null)
                 {
                     _path = new MinecraftPath();
-                    _launcher = new CMLauncher(_path);
+                    
+                    // Включаем зеркала для обхода блокировок провайдера
+                    var parameters = new MinecraftLauncherParameters
+                    {
+                        // Используем встроенные зеркала
+                        Downloader = new CmlLib.Core.Downloader.SequentialDownloader()
+                    };
+                    _launcher = new MinecraftLauncher(_path, parameters);
 
                     _launcher.FileChanged += (args) =>
                     {
@@ -67,6 +73,8 @@ namespace NebulaLauncher
 
                 StatusText.Text = "Скачивание...";
                 var session = MSession.GetOfflineSession(nick);
+                
+                // В версии 4.0.0 используется MLaunchOption
                 var option = new MLaunchOption
                 {
                     Session = session,
