@@ -2,7 +2,6 @@ using System;
 using System.Windows;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
-using CmlLib.Core.ProcessBuilder; // Необходимо для новых событий
 
 namespace NebulaLauncher
 {
@@ -17,17 +16,22 @@ namespace NebulaLauncher
             _path = new MinecraftPath();
             _launcher = new CMLauncher(_path);
             
-            // Подписываемся на события для прогресс-бара
-            _launcher.FileChanged += (s, e) =>
+            // Событие изменения файла (показывает имя файла)
+            _launcher.FileChanged += (e) =>
             {
                 Dispatcher.Invoke(() =>
                 {
                     DownloadBar.Visibility = Visibility.Visible;
                     StatusText.Text = $"Скачивание: {e.FileName}";
-                    if (e.TotalTasks > 0)
-                    {
-                        DownloadBar.Value = (double)e.ProgressedTasks / e.TotalTasks * 100;
-                    }
+                });
+            };
+
+            // Событие прогресса (показывает проценты)
+            _launcher.ProgressChanged += (s, e) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    DownloadBar.Value = e.ProgressPercentage;
                 });
             };
 
@@ -69,7 +73,7 @@ namespace NebulaLauncher
                 var option = new MLaunchOption
                 {
                     Session = session,
-                    MaximumRamMb = 2048, // 2 ГБ ОЗУ
+                    MaximumRamMb = 2048,
                 };
 
                 var process = await _launcher.CreateProcessAsync(version, option);
