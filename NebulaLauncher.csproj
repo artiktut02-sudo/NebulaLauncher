@@ -8,4 +8,9 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ВОТ ЭТА СТРОЧКА ОТВЕЧАЕТ ЗА МАЙНКРАФТ, ОНА ДОЛЖНА БЫТЬ -->
+    <PackageReference Include="CmlLib.Core" Version="3.3.10" />
+  </ItemGroup>
 </Project>
