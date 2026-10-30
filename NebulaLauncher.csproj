@@ -9,7 +9,6 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
-    <!-- Откатываемся на стабильную версию -->
     <PackageReference Include="CmlLib.Core" Version="3.3.10" />
   </ItemGroup>
 </Project>
