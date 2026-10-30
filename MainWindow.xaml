@@ -1,0 +1,21 @@
+<Window x:Class="NebulaLauncher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Nebula Launcher" Height="450" Width="600"
+        Background="#1E1E2E">
+    <Grid>
+        <StackPanel Margin="20" VerticalAlignment="Center">
+            <TextBlock Text="NEBULA LAUNCHER" FontSize="28" FontWeight="Bold"
+                       Foreground="#A78BFA" HorizontalAlignment="Center" Margin="0,0,0,25"/>
+            <TextBlock Text="Ник:" FontSize="16" Foreground="White" Margin="0,0,0,5"/>
+            <TextBox x:Name="NickBox" Text="Steve" FontSize="16" Padding="5"/>
+            <TextBlock Text="Версия:" FontSize="16" Foreground="White" Margin="0,15,0,5"/>
+            <ComboBox x:Name="VersionBox" FontSize="16" Padding="5"/>
+            <Button x:Name="PlayBtn" Content="ИГРАТЬ"
+                    FontSize="20" Height="50" Margin="0,30,0,10"
+                    Background="#7C3AED" Foreground="White" BorderThickness="0"
+                    Click="PlayBtn_Click"/>
+            <TextBlock x:Name="StatusText" FontSize="14" Foreground="#A78BFA" Text="Готов"/>
+        </StackPanel>
+    </Grid>
+</Window>
