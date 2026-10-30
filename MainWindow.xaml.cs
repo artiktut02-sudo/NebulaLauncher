@@ -1,6 +1,5 @@
 using System;
 using System.Windows;
-using System.IO;
 using System.Diagnostics;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
@@ -18,12 +17,13 @@ namespace NebulaLauncher
             _path = new MinecraftPath();
             _launcher = new CMLauncher(_path);
             
+            // Подписка на события скачивания
             _launcher.FileChanged += (e) =>
             {
                 Dispatcher.Invoke(() =>
                 {
                     DownloadBar.Visibility = Visibility.Visible;
-                    StatusText.Text = $"Скачивание: {e.FileName}";
+                    StatusText.Text = $"Качаем: {e.FileName}";
                 });
             };
 
@@ -42,7 +42,7 @@ namespace NebulaLauncher
         {
             try
             {
-                StatusText.Text = "Загрузка списка версий...";
+                StatusText.Text = "Загрузка версий...";
                 var versions = await _launcher.GetAllVersionsAsync();
                 VersionBox.Items.Clear();
                 foreach (var v in versions)
@@ -53,30 +53,35 @@ namespace NebulaLauncher
             }
             catch (Exception ex)
             {
-                StatusText.Text = "Ошибка: " + ex.Message;
+                StatusText.Text = "Ошибка версий";
+                MessageBox.Show("Не удалось загрузить список версий:\n" + ex.Message);
             }
         }
 
         private async void PlayBtn_Click(object sender, RoutedEventArgs e)
         {
             var nick = NickBox.Text.Trim();
-            if (string.IsNullOrEmpty(nick)) { StatusText.Text = "Введи ник"; return; }
+            if (string.IsNullOrEmpty(nick)) { StatusText.Text = "Введи ник!"; return; }
             var version = VersionBox.SelectedItem?.ToString();
-            if (version == null) { StatusText.Text = "Выбери версию"; return; }
+            if (version == null) { StatusText.Text = "Выбери версию!"; return; }
 
             try
             {
                 PlayBtn.IsEnabled = false;
                 StatusText.Text = "Подготовка...";
+                DownloadBar.Visibility = Visibility.Visible;
+                DownloadBar.Value = 0;
 
                 var session = MSession.GetOfflineSession(nick);
                 var option = new MLaunchOption
                 {
                     Session = session,
-                    MaximumRamMb = 2048,
+                    MaximumRamMb = 2048, // 2ГБ памяти
                 };
 
                 var process = await _launcher.CreateProcessAsync(version, option);
+                
+                StatusText.Text = "Запуск игры...";
                 process.Start();
                 
                 StatusText.Text = "Игра запущена!";
@@ -84,8 +89,9 @@ namespace NebulaLauncher
             }
             catch (Exception ex)
             {
-                StatusText.Text = "Ошибка: " + ex.Message;
-                MessageBox.Show(ex.ToString(), "Ошибка запуска");
+                StatusText.Text = "ОШИБКА";
+                DownloadBar.Visibility = Visibility.Collapsed;
+                MessageBox.Show("Ошибка при скачивании/запуске:\n\n" + ex.ToString(), "Ошибка");
             }
             finally
             {
@@ -93,26 +99,19 @@ namespace NebulaLauncher
             }
         }
 
-        // Логика для кнопки "МОДЫ"
         private void ModsBtn_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Путь к папке mods в .minecraft
-                string modsPath = Path.Combine(_path.BasePath, "mods");
-                
-                // Если папки нет - создаем
-                if (!Directory.Exists(modsPath))
+                Process.Start(new ProcessStartInfo
                 {
-                    Directory.CreateDirectory(modsPath);
-                }
-
-                // Открываем папку в проводнике
-                Process.Start("explorer.exe", modsPath);
+                    FileName = "https://modrinth.com/mods",
+                    UseShellExecute = true
+                });
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Не удалось открыть папку модов: " + ex.Message);
+                MessageBox.Show("Не удалось открыть сайт: " + ex.Message);
             }
         }
     }
