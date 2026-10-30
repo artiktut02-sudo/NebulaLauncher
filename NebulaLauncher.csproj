@@ -8,9 +8,8 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
-
   <ItemGroup>
-    <!-- Обновили версию до 4.0.0 для поддержки зеркал -->
-    <PackageReference Include="CmlLib.Core" Version="4.0.0" />
+    <!-- Откатываемся на стабильную версию -->
+    <PackageReference Include="CmlLib.Core" Version="3.3.10" />
   </ItemGroup>
 </Project>
