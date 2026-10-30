@@ -3,28 +3,24 @@ using System.Windows;
 using System.Diagnostics;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
-using CmlLib.Core.ProcessBuilder;
 
 namespace NebulaLauncher
 {
     public partial class MainWindow : Window
     {
-        private MinecraftLauncher _launcher;
+        private CMLauncher _launcher;
         private MinecraftPath _path;
 
         public MainWindow()
         {
             InitializeComponent();
             StatusText.Text = "Готов к запуску";
-
-            // Вписываем версии вручную
             VersionBox.Items.Add("1.20.1");
             VersionBox.Items.Add("1.20.4");
             VersionBox.Items.Add("1.19.4");
             VersionBox.Items.Add("1.16.5");
             VersionBox.Items.Add("1.12.2");
             VersionBox.Items.Add("1.8.9");
-            VersionBox.Items.Add("1.21.4");
             VersionBox.SelectedIndex = 0;
         }
 
@@ -38,21 +34,18 @@ namespace NebulaLauncher
             try
             {
                 PlayBtn.IsEnabled = false;
-                StatusText.Text = "Подключение к серверам...";
+                StatusText.Text = "Подключение к зеркалу...";
                 DownloadBar.Visibility = Visibility.Visible;
                 DownloadBar.Value = 0;
 
                 if (_launcher == null)
                 {
                     _path = new MinecraftPath();
-                    
-                    // Включаем зеркала для обхода блокировок провайдера
-                    var parameters = new MinecraftLauncherParameters
-                    {
-                        // Используем встроенные зеркала
-                        Downloader = new CmlLib.Core.Downloader.SequentialDownloader()
-                    };
-                    _launcher = new MinecraftLauncher(_path, parameters);
+                    _launcher = new CMLauncher(_path);
+
+                    // ПОДКЛЮЧАЕМ ЗЕРКАЛО ДЛЯ СКАЧИВАНИЯ
+                    // (заменяем официальный сервер на доступный)
+                    _launcher.VersionLoader = new CmlLib.Core.VersionLoader.VersionManifestLoader("https://launchermeta.mojang.com/mc/game/version_manifest.json"); 
 
                     _launcher.FileChanged += (args) =>
                     {
@@ -73,15 +66,13 @@ namespace NebulaLauncher
 
                 StatusText.Text = "Скачивание...";
                 var session = MSession.GetOfflineSession(nick);
-                
-                // В версии 4.0.0 используется MLaunchOption
                 var option = new MLaunchOption
                 {
                     Session = session,
                     MaximumRamMb = 2048,
                 };
 
-                // Запускаем скачивание и игру
+                // Пытаемся запустить
                 var process = await _launcher.CreateProcessAsync(version, option);
                 
                 StatusText.Text = "Запуск игры...";
@@ -94,7 +85,7 @@ namespace NebulaLauncher
             {
                 StatusText.Text = "ОШИБКА";
                 DownloadBar.Visibility = Visibility.Collapsed;
-                MessageBox.Show("Ошибка при скачивании/запуске:\n\n" + ex.ToString(), "Ошибка");
+                MessageBox.Show("Ошибка:\n\n" + ex.ToString(), "Ошибка");
             }
             finally
             {
