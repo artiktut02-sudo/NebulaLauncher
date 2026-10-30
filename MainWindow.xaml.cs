@@ -44,6 +44,7 @@ namespace NebulaLauncher
                     _path = new MinecraftPath();
                     _launcher = new CMLauncher(_path);
 
+                    // Показываем прогресс
                     _launcher.FileChanged += (args) =>
                     {
                         Dispatcher.Invoke(() =>
@@ -62,7 +63,9 @@ namespace NebulaLauncher
                 }
 
                 StatusText.Text = "Скачивание...";
-                var session = MSession.GetOfflineSession(nick);
+                
+                // Создаем офлайн-сессию
+                var session = MSession.CreateOfflineSession(nick);
                 
                 var option = new MLaunchOption
                 {
