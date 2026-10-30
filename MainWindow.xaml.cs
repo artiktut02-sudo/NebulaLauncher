@@ -1,5 +1,7 @@
 using System;
 using System.Windows;
+using System.IO;
+using System.Diagnostics;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
 
@@ -16,7 +18,6 @@ namespace NebulaLauncher
             _path = new MinecraftPath();
             _launcher = new CMLauncher(_path);
             
-            // Событие изменения файла (показывает имя файла)
             _launcher.FileChanged += (e) =>
             {
                 Dispatcher.Invoke(() =>
@@ -26,7 +27,6 @@ namespace NebulaLauncher
                 });
             };
 
-            // Событие прогресса (показывает проценты)
             _launcher.ProgressChanged += (s, e) =>
             {
                 Dispatcher.Invoke(() =>
@@ -90,6 +90,29 @@ namespace NebulaLauncher
             finally
             {
                 PlayBtn.IsEnabled = true;
+            }
+        }
+
+        // Логика для кнопки "МОДЫ"
+        private void ModsBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Путь к папке mods в .minecraft
+                string modsPath = Path.Combine(_path.BasePath, "mods");
+                
+                // Если папки нет - создаем
+                if (!Directory.Exists(modsPath))
+                {
+                    Directory.CreateDirectory(modsPath);
+                }
+
+                // Открываем папку в проводнике
+                Process.Start("explorer.exe", modsPath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Не удалось открыть папку модов: " + ex.Message);
             }
         }
     }
