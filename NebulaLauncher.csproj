@@ -8,11 +8,17 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     
-    <!-- Твоя иконка -->
+    <!-- Иконка приложения -->
     <ApplicationIcon>nebula.ico</ApplicationIcon>
     
   </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="CmlLib.Core" Version="3.3.10" />
+  </ItemGroup>
+
+  <!-- ВОТ ЭТО ЗАШЬЕТ ИКОНКУ ВНУТРЬ ПРОГРАММЫ -->
+  <ItemGroup>
+    <Resource Include="nebula.ico" />
   </ItemGroup>
 </Project>
